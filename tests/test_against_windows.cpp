@@ -1,7 +1,7 @@
 // Compares every entry of every table with the Windows API from which it was generated.
 //
 // Windows only. A failure indicates either that the tables were modified manually or that the
-// Windows conversion has changed since generation; in either case tools/generate must be run
+// Windows conversion has changed since generation. In either case tools/generate must be run
 // again. Comparing whole strings also verifies an assumption of the table format: that Windows
 // decodes each sequence independently of the preceding bytes.
 #include <cstdio>

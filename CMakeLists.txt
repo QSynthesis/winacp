@@ -107,7 +107,7 @@ if(WINACP_BUILD_TESTS)
     target_link_libraries(test_winacp PRIVATE winacp::winacp)
     add_test(NAME test_winacp COMMAND test_winacp)
 
-    # Verification of the tables against the Windows API; Windows only.
+    # Verification of the tables against the Windows API, which exists on Windows only.
     if(WIN32)
         add_executable(test_against_windows tests/test_against_windows.cpp tests/check.h)
         target_link_libraries(test_against_windows PRIVATE winacp::winacp)

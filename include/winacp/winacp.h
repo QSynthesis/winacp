@@ -75,7 +75,7 @@ namespace winacp {
     /// A character with more than one encoding, such as a character of code page 932 with both
     /// an NEC and an IBM encoding, is encoded to the sequence that Windows produces. A small
     /// number of characters to which no sequence decodes are encoded nevertheless, because
-    /// Windows encodes them; decoding the result therefore does not always reproduce \a text .
+    /// Windows encodes them. Decoding the result therefore does not always reproduce \a text .
     ///
     /// \return the encoded bytes, or \c std::nullopt if the code page is not supported or if
     ///         any character cannot be represented in it

@@ -147,7 +147,7 @@ namespace winacp {
                     if (!replacement) {
                         return false;
                     }
-                    // One replacement per code unit, as Windows emits; a character outside the
+                    // One replacement per code unit, as Windows emits. A character outside the
                     // Basic Multilingual Plane therefore yields two.
                     out += *replacement;
                 } else if (packed > 0xFF) {

@@ -29,7 +29,7 @@ No existing implementation provides this mapping on all platforms. The following
 | macOS iconv | 1 | approx. 2100 | approx. 6200 | approx. 190 |
 | macOS Core Foundation | approx. 1000 | approx. 1980 | approx. 6230 | approx. 97 |
 
-ICU is the closest, but it is not available everywhere: the Qt distribution for macOS is built without ICU, and the copy bundled with macOS provides no public headers. The native macOS converters omit the several thousand characters that Windows maps into the Private Use Area, and encode certain characters to byte sequences other than those Windows produces; on code page 932 this affects every character that has both an NEC and an IBM encoding.
+ICU is the closest, but it is not available everywhere: the Qt distribution for macOS is built without ICU, and the copy bundled with macOS provides no public headers. The native macOS converters omit the several thousand characters that Windows maps into the Private Use Area, and encode certain characters to byte sequences other than those Windows produces. On code page 932 this affects every character that has both an NEC and an IBM encoding.
 
 winacp therefore captures the mapping from Windows once and distributes it as embedded tables.
 
@@ -54,7 +54,7 @@ All code pages that Windows uses as the ANSI code page of a locale:
 | 1257 | `Baltic` | Baltic |
 | 1258 | `Vietnamese` | Vietnamese |
 
-The following are not supported: GB18030 (code page 54936), whose four-byte sequences are defined algorithmically rather than by table; UTF-7; and stateful encodings such as ISO-2022-JP. None of these serves as an ANSI code page.
+The following are not supported: GB18030 (code page 54936), UTF-7, and stateful encodings such as ISO-2022-JP. GB18030 defines its four-byte sequences algorithmically rather than by table. None of these serves as an ANSI code page.
 
 ## Behavior
 
@@ -66,7 +66,7 @@ The following are not supported: GB18030 (code page 54936), whose four-byte sequ
 
 ## Building
 
-Requirements: CMake 3.19 or later and a C++17 compiler. During the build, `tools/embed` validates the text tables and compiles them into arrays that the library indexes directly; the library contains no table parser. No other tools are needed.
+Requirements: CMake 3.19 or later and a C++17 compiler. During the build, `tools/embed` validates the text tables and compiles them into arrays that the library indexes directly. The library contains no table parser. No other tools are needed.
 
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
@@ -76,10 +76,10 @@ cmake --install build --prefix <prefix>
 
 | Option | Default | Description |
 |---|---|---|
-| `BUILD_SHARED_LIBS` | `OFF` | Build a shared library. The interface passes standard library types, so a shared library and its callers must use the same compiler, standard library and runtime settings; on MSVC, a debug and a release build are therefore incompatible. The static library is compiled as position-independent code so that it can be linked into a shared library. |
+| `BUILD_SHARED_LIBS` | `OFF` | Build a shared library. The interface passes standard library types, so a shared library and its callers must use the same compiler, standard library and runtime settings. On MSVC, a debug build and a release build are therefore incompatible. The static library is compiled as position-independent code so that it can be linked into a shared library. |
 | `WINACP_BUILD_TESTS` | `OFF` | Build the tests. |
 | `WINACP_BUILD_GENERATOR` | `OFF` | Build the table generator. Windows only. |
-| `WINACP_EMBED_EXECUTABLE` | empty | A build of `winacp-embed` for the build host. Required when cross-compiling, because the build runs it; otherwise it is built automatically. |
+| `WINACP_EMBED_EXECUTABLE` | empty | A build of `winacp-embed` for the build host. Required when cross-compiling, because the build runs it. Otherwise it is built automatically. |
 | `WINACP_INSTALL` | `ON` | Generate installation rules. |
 
 ## Integration

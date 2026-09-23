@@ -94,7 +94,7 @@ namespace {
         CHECK(decodes(CP::Japanese, "\xed\x40"s, u"\u7e8a"));
         CHECK(decodes(CP::Japanese, "\xfa\x5c"s, u"\u7e8a"));
         CHECK(encodes(CP::Japanese, u"\u7e8a", "\xfa\x5c"s));
-        CHECK(decodes(CP::Japanese, "\x87\x90"s, u"\u2252")); // NEC row 13; encoded to JIS row 2
+        CHECK(decodes(CP::Japanese, "\x87\x90"s, u"\u2252")); // NEC row 13, which Windows encodes to JIS row 2
         CHECK(encodes(CP::Japanese, u"\u2252", "\x81\xe0"s));
     }
 
