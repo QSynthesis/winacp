@@ -100,6 +100,17 @@ if(WINACP_BUILD_TESTS)
         target_link_libraries(test_against_windows PRIVATE winacp::winacp)
         add_test(NAME test_against_windows COMMAND test_against_windows)
     endif()
+
+    # Without incremental linking. After a table changed, an incremental link of MSVC 14.44 has
+    # been observed to retain the previous tables from the static library, so that the tests
+    # passed against data that was no longer in the tables.
+    if(MSVC)
+        foreach(_test test_winacp test_against_windows)
+            if(TARGET ${_test})
+                set_property(TARGET ${_test} APPEND_STRING PROPERTY LINK_FLAGS " /INCREMENTAL:NO")
+            endif()
+        endforeach()
+    endif()
 endif()
 
 # ----------------------------------
