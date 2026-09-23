@@ -59,6 +59,7 @@ target_include_directories(winacp
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winacp
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 target_compile_features(winacp PUBLIC cxx_std_17)
