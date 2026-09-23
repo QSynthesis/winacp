@@ -22,16 +22,28 @@ endif()
 # ----------------------------------
 # Embedded tables
 # ----------------------------------
-file(GLOB _tables CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tables/cp*.bin)
+# tools/embed validates the text tables and compiles them into arrays. It runs on the build host,
+# so a cross build requires a host build of it.
+set(WINACP_EMBED_EXECUTABLE "" CACHE FILEPATH
+    "Host build of winacp-embed, required when cross-compiling")
+if(WINACP_EMBED_EXECUTABLE)
+    set(_embed ${WINACP_EMBED_EXECUTABLE})
+elseif(CMAKE_CROSSCOMPILING)
+    message(FATAL_ERROR "Cross-compiling requires a host build of winacp-embed. Build the target "
+        "winacp-embed for the build host and pass -DWINACP_EMBED_EXECUTABLE=<path>.")
+else()
+    add_executable(winacp-embed tools/embed/main.cpp)
+    target_compile_features(winacp-embed PRIVATE cxx_std_17)
+    set(_embed winacp-embed)
+endif()
+
+file(GLOB _tables CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tables/cp*.txt)
 set(_embedded ${CMAKE_CURRENT_BINARY_DIR}/tables.cpp)
 add_custom_command(
     OUTPUT ${_embedded}
-    COMMAND ${CMAKE_COMMAND}
-        -DDIRECTORY=${CMAKE_CURRENT_SOURCE_DIR}/tables
-        -DOUTPUT=${_embedded}
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/embed.cmake
-    DEPENDS ${_tables} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/embed.cmake
-    COMMENT "Embedding the code page tables"
+    COMMAND ${_embed} ${_embedded} ${_tables}
+    DEPENDS ${_embed} ${_tables}
+    COMMENT "Compiling the code page tables"
     VERBATIM
 )
 

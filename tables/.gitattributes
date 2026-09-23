@@ -1,2 +1,3 @@
-# Tables of UTF-16 code units. A line ending changed in one is a character changed.
-*.bin binary
+# Tables of UTF-8 text. LF on every platform, so that the embedded bytes do not depend on the
+# checkout.
+*.txt text eol=lf
