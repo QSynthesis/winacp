@@ -76,7 +76,7 @@ cmake --install build --prefix <prefix>
 
 | Option | Default | Description |
 |---|---|---|
-| `BUILD_SHARED_LIBS` | `OFF` | Build a shared library. The static library is compiled as position-independent code so that it can be linked into a shared library. |
+| `BUILD_SHARED_LIBS` | `OFF` | Build a shared library. The interface passes standard library types, so a shared library and its callers must use the same compiler, standard library and runtime settings; on MSVC, a debug and a release build are therefore incompatible. The static library is compiled as position-independent code so that it can be linked into a shared library. |
 | `WINACP_BUILD_TESTS` | `OFF` | Build the tests. |
 | `WINACP_BUILD_GENERATOR` | `OFF` | Build the table generator. Windows only. |
 | `WINACP_INSTALL` | `ON` | Generate installation rules. |
