@@ -5,8 +5,16 @@ A C++17 library for converting text between UTF-16 and the Windows ANSI code pag
 ```cpp
 #include <winacp/winacp.h>
 
-std::optional<std::u16string> text = winacp::decode(932, bytes);  // Shift_JIS, decoded as by Windows
-std::optional<std::string> back = winacp::encode(932, *text);     // encoded as by Windows
+using winacp::CodePage;
+
+// Code page 932, the Microsoft variant of Shift_JIS, converted as by Windows.
+std::optional<std::u16string> text = winacp::decode(CodePage::Japanese, bytes);
+std::optional<std::string> back = winacp::encode(CodePage::Japanese, *text);
+
+// A code page number obtained from data, such as an encoding recorded in a file.
+if (std::optional<CodePage> codePage = winacp::codePageFromNumber(number)) {
+    text = winacp::decode(*codePage, bytes);
+}
 ```
 
 ## Motivation
@@ -29,14 +37,22 @@ winacp therefore captures the mapping from Windows once and distributes it as em
 
 All code pages that Windows uses as the ANSI code page of a locale:
 
-| Code page | Script |
-|---|---|
-| 874 | Thai |
-| 932 | Japanese (Microsoft variant of Shift_JIS) |
-| 936 | Simplified Chinese (GBK) |
-| 949 | Korean (Unified Hangul Code) |
-| 950 | Traditional Chinese (Microsoft variant of Big5) |
-| 1250 – 1258 | Central European, Cyrillic, Western European, Greek, Turkish, Hebrew, Arabic, Baltic, Vietnamese |
+| Code page | `CodePage` | Script |
+|---|---|---|
+| 874 | `Thai` | Thai |
+| 932 | `Japanese` | Japanese (Microsoft variant of Shift_JIS) |
+| 936 | `SimplifiedChinese` | Simplified Chinese (GBK) |
+| 949 | `Korean` | Korean (Unified Hangul Code) |
+| 950 | `TraditionalChinese` | Traditional Chinese (Microsoft variant of Big5) |
+| 1250 | `CentralEuropean` | Central European |
+| 1251 | `Cyrillic` | Cyrillic |
+| 1252 | `WesternEuropean` | Western European (Latin 1) |
+| 1253 | `Greek` | Greek |
+| 1254 | `Turkish` | Turkish |
+| 1255 | `Hebrew` | Hebrew |
+| 1256 | `Arabic` | Arabic |
+| 1257 | `Baltic` | Baltic |
+| 1258 | `Vietnamese` | Vietnamese |
 
 The following are not supported: GB18030 (code page 54936), whose four-byte sequences are defined algorithmically rather than by table; UTF-7; and stateful encodings such as ISO-2022-JP. None of these serves as an ANSI code page.
 
@@ -45,7 +61,8 @@ The following are not supported: GB18030 (code page 54936), whose four-byte sequ
 - `decode()` rejects invalid byte sequences, consistent with `MultiByteToWideChar` under `MB_ERR_INVALID_CHARS`. An invalid sequence indicates that the wrong code page was selected, and substituting replacement characters would conceal that error.
 - `encode()` rejects characters that the code page cannot represent. The overload that accepts a replacement character emits it instead, once per UTF-16 code unit, consistent with the default character of `WideCharToMultiByte`.
 - A character with more than one encoding is encoded to the byte sequence that Windows produces.
-- Code pages are identified by number. The mapping from encoding names to numbers is left to the caller, because names are ambiguous: "Shift_JIS" denotes code page 932 in some programs and JIS X 0208 in others.
+- Code pages are identified by the enumeration `CodePage`, whose enumerators equal the code page numbers that Windows uses. `toNumber()` returns the number, and `codePageFromNumber()` converts a number obtained from data, returning `std::nullopt` if no supported code page has it.
+- The enumerators are named after the script or language rather than after an encoding, because encoding names are ambiguous: "Shift_JIS" denotes code page 932 in some programs and JIS X 0208 in others. The mapping from encoding names to code pages is left to the caller.
 
 ## Building
 

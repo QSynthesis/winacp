@@ -42,7 +42,8 @@ namespace {
         return std::string(bytes, size_t(size > 0 ? size : 0));
     }
 
-    void decodingAgrees(UINT page) {
+    void decodingAgrees(winacp::CodePage codePage) {
+        const UINT page = UINT(winacp::toNumber(codePage));
         int differences = 0;
         for (int b = 0; b < 256; ++b) {
             for (int t = -1; t < 256; ++t) {
@@ -50,7 +51,7 @@ namespace {
                 if (t >= 0) {
                     bytes += char(t);
                 }
-                const auto ours = winacp::decode(int(page), bytes);
+                const auto ours = winacp::decode(codePage, bytes);
                 const auto theirs = windowsDecode(page, bytes);
                 if (ours != theirs && ++differences <= 5) {
                     std::printf("code page %u: bytes %02X %02X decode differently\n", page, b,
@@ -61,7 +62,8 @@ namespace {
         CHECK(differences == 0);
     }
 
-    void encodingAgrees(UINT page) {
+    void encodingAgrees(winacp::CodePage codePage) {
+        const UINT page = UINT(winacp::toNumber(codePage));
         int differences = 0;
         for (int c = 0; c < 0x10000; ++c) {
             if (c >= 0xD800 && c < 0xE000) {
@@ -70,12 +72,12 @@ namespace {
             const std::u16string text(1, char16_t(c));
             bool substituted = false;
             const std::string theirs = windowsEncode(page, text, &substituted);
-            const auto ours = winacp::encode(int(page), text);
+            const auto ours = winacp::encode(codePage, text);
             const bool agrees = substituted ? !ours.has_value() : (ours && *ours == theirs);
             // Where Windows substitutes its default character, the replacing overload must
             // produce the same output.
             const bool replacedAlike =
-                !substituted || winacp::encode(int(page), text, '?') == theirs;
+                !substituted || winacp::encode(codePage, text, '?') == theirs;
             if ((!agrees || !replacedAlike) && ++differences <= 5) {
                 std::printf("code page %u: U+%04X encodes differently\n", page, c);
             }
@@ -85,15 +87,15 @@ namespace {
         // A character outside the Basic Multilingual Plane.
         bool substituted = false;
         const std::u16string astral = u"a\U0001F600b";
-        CHECK(winacp::encode(int(page), astral, '?') == windowsEncode(page, astral, &substituted));
+        CHECK(winacp::encode(codePage, astral, '?') == windowsEncode(page, astral, &substituted));
     }
 
 }
 
 int main() {
-    for (const int page : winacp::codePages()) {
-        decodingAgrees(UINT(page));
-        encodingAgrees(UINT(page));
+    for (const winacp::CodePage page : winacp::codePages()) {
+        decodingAgrees(page);
+        encodingAgrees(page);
     }
     return CHECK_RESULT();
 }

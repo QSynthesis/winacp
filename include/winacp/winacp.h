@@ -19,18 +19,48 @@
 /// mappings and encode certain characters differently.
 ///
 /// The mapping is therefore captured from Windows by tools/generate and embedded as tables.
-///
-/// Code pages are identified by number. The mapping from encoding names to numbers is left to
-/// the caller, because names are ambiguous: "Shift_JIS" denotes code page 932 in some programs
-/// and JIS X 0208 in others.
 namespace winacp {
 
-    /// Returns the supported code pages in ascending order: all code pages that Windows uses as
-    /// the ANSI code page of a locale.
-    WINACP_EXPORT const std::vector<int> &codePages();
+    /// A Windows ANSI code page. Each enumerator equals the code page number that Windows uses.
+    ///
+    /// The enumerators are named after the script or language of the code page rather than after
+    /// an encoding, because encoding names are ambiguous: "Shift_JIS" denotes code page 932 in
+    /// some programs and JIS X 0208 in others. The corresponding encoding name is given in the
+    /// comment of each enumerator that has a common one.
+    enum class CodePage : int {
+        Thai = 874,
+        Japanese = 932,           ///< Microsoft variant of Shift_JIS
+        SimplifiedChinese = 936,  ///< GBK
+        Korean = 949,             ///< Unified Hangul Code
+        TraditionalChinese = 950, ///< Microsoft variant of Big5
+        CentralEuropean = 1250,
+        Cyrillic = 1251,
+        WesternEuropean = 1252, ///< Latin 1
+        Greek = 1253,
+        Turkish = 1254,
+        Hebrew = 1255,
+        Arabic = 1256,
+        Baltic = 1257,
+        Vietnamese = 1258,
+    };
 
-    /// Returns whether \a codePage is supported.
-    WINACP_EXPORT bool isAvailable(int codePage);
+    /// Returns the code page number of \a codePage , for a file format or an operating system
+    /// interface that records the number.
+    constexpr int toNumber(CodePage codePage) {
+        return static_cast<int>(codePage);
+    }
+
+    /// Returns the code page of \a number , or \c std::nullopt if no
+    /// supported code page has that number.
+    ///
+    /// A code page number is commonly obtained from data rather than written in the source: the
+    /// ANSI code page of the host, an encoding recorded in a configuration file, or a selection
+    /// made by the user. This function is where such a number is validated.
+    WINACP_EXPORT std::optional<CodePage> codePageFromNumber(int number);
+
+    /// Returns the supported code pages in ascending order of number: all code pages that
+    /// Windows uses as the ANSI code page of a locale.
+    WINACP_EXPORT const std::vector<CodePage> &codePages();
 
     /// Decodes \a bytes from \a codePage .
     ///
@@ -38,7 +68,7 @@ namespace winacp {
     ///         byte sequence is invalid, consistent with MultiByteToWideChar under
     ///         MB_ERR_INVALID_CHARS. An invalid sequence indicates that the wrong code page was
     ///         selected, and substituting replacement characters would conceal that error.
-    WINACP_EXPORT std::optional<std::u16string> decode(int codePage, std::string_view bytes);
+    WINACP_EXPORT std::optional<std::u16string> decode(CodePage codePage, std::string_view bytes);
 
     /// Encodes \a text into \a codePage .
     ///
@@ -49,7 +79,7 @@ namespace winacp {
     ///
     /// \return the encoded bytes, or \c std::nullopt if the code page is not supported or if
     ///         any character cannot be represented in it
-    WINACP_EXPORT std::optional<std::string> encode(int codePage, std::u16string_view text);
+    WINACP_EXPORT std::optional<std::string> encode(CodePage codePage, std::u16string_view text);
 
     /// \overload
     ///
@@ -58,7 +88,7 @@ namespace winacp {
     /// character of WideCharToMultiByte, which is a question mark on every supported code page.
     ///
     /// \return the encoded bytes, or an empty string if the code page is not supported
-    WINACP_EXPORT std::string encode(int codePage, std::u16string_view text, char replacement);
+    WINACP_EXPORT std::string encode(CodePage codePage, std::u16string_view text, char replacement);
 
 }
 

@@ -133,9 +133,9 @@ namespace winacp {
             return table;
         }
 
-        /// Returns the table of \a codePage , or null if it is not supported. All tables are
-        /// parsed on first use.
-        const Table *tableOf(int codePage) {
+        /// Returns the table of the code page numbered \a number , or null if no supported
+        /// code page has that number. All tables are parsed on first use.
+        const Table *tableOf(int number) {
             static const auto tables = [] {
                 std::vector<std::pair<int, std::unique_ptr<Table>>> out;
                 for (std::size_t i = 0; i < detail::blobCount; ++i) {
@@ -147,7 +147,7 @@ namespace winacp {
                 return out;
             }();
             for (const auto &[page, table] : tables) {
-                if (page == codePage) {
+                if (page == number) {
                     return table.get();
                 }
             }
@@ -156,12 +156,19 @@ namespace winacp {
 
     }
 
-    const std::vector<int> &codePages() {
+    std::optional<CodePage> codePageFromNumber(int number) {
+        if (!tableOf(number)) {
+            return std::nullopt;
+        }
+        return CodePage(number);
+    }
+
+    const std::vector<CodePage> &codePages() {
         static const auto pages = [] {
-            std::vector<int> out;
+            std::vector<CodePage> out;
             for (std::size_t i = 0; i < detail::blobCount; ++i) {
                 if (tableOf(detail::blobs[i].codePage)) {
-                    out.push_back(detail::blobs[i].codePage);
+                    out.push_back(CodePage(detail::blobs[i].codePage));
                 }
             }
             return out;
@@ -169,12 +176,8 @@ namespace winacp {
         return pages;
     }
 
-    bool isAvailable(int codePage) {
-        return tableOf(codePage) != nullptr;
-    }
-
-    std::optional<std::u16string> decode(int codePage, std::string_view bytes) {
-        const Table *table = tableOf(codePage);
+    std::optional<std::u16string> decode(CodePage codePage, std::string_view bytes) {
+        const Table *table = tableOf(toNumber(codePage));
         if (!table) {
             return std::nullopt;
         }
@@ -231,8 +234,8 @@ namespace winacp {
 
     }
 
-    std::optional<std::string> encode(int codePage, std::u16string_view text) {
-        const Table *table = tableOf(codePage);
+    std::optional<std::string> encode(CodePage codePage, std::u16string_view text) {
+        const Table *table = tableOf(toNumber(codePage));
         if (!table) {
             return std::nullopt;
         }
@@ -243,8 +246,8 @@ namespace winacp {
         return out;
     }
 
-    std::string encode(int codePage, std::u16string_view text, char replacement) {
-        const Table *table = tableOf(codePage);
+    std::string encode(CodePage codePage, std::u16string_view text, char replacement) {
+        const Table *table = tableOf(toNumber(codePage));
         std::string out;
         if (table) {
             write(*table, text, &replacement, out);
