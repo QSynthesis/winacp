@@ -1,4 +1,4 @@
-# winacp
+# WINACP
 
 A C++17 library for converting text between UTF-16 and the Windows ANSI code pages. It reproduces the Windows conversion byte for byte on Windows, macOS and Linux.
 
@@ -100,11 +100,6 @@ cmake --build build
 build/winacp-generate tables
 ctest --test-dir build
 ```
-
-## Tests
-
-- `test_winacp` (all platforms): checks selected characters against fixed expected values, the rejection and replacement behavior, and the round-trip conversion of every character of every code page.
-- `test_against_windows` (Windows only): compares the decoding of every one- and two-byte sequence, and the encoding of every character of the Basic Multilingual Plane, with the results of the Windows API. A failure indicates that the Windows conversion no longer matches the tables, which must then be regenerated.
 
 ## License
 
