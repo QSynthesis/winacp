@@ -50,27 +50,27 @@ add_custom_command(
 # ----------------------------------
 # Library
 # ----------------------------------
-add_library(winacp
+add_library(${PROJECT_NAME}
     include/winacp/winacp.h
     src/tables.h
     src/winacp.cpp
     ${_embedded}
 )
-add_library(winacp::winacp ALIAS winacp)
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 # Debug and Release builds may be installed to the same prefix. The postfix keeps the debug
 # library, which a Debug consumer must link because of _ITERATOR_DEBUG_LEVEL, from replacing
 # the release library of the same name.
-set_target_properties(winacp PROPERTIES DEBUG_POSTFIX d)
+set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX d)
 
-generate_export_header(winacp
+generate_export_header(${PROJECT_NAME}
     EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/include/winacp/winacp_export.h
 )
 if(NOT BUILD_SHARED_LIBS)
-    target_compile_definitions(winacp PUBLIC WINACP_STATIC_DEFINE)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC WINACP_STATIC_DEFINE)
 endif()
 
-target_include_directories(winacp
+target_include_directories(${PROJECT_NAME}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
@@ -79,11 +79,11 @@ target_include_directories(winacp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/winacp
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-target_compile_features(winacp PUBLIC cxx_std_17)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
 # Position-independent code is enabled for the static library as well, so that it can be linked
 # into a shared library.
-set_target_properties(winacp PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
     POSITION_INDEPENDENT_CODE ON
     CXX_VISIBILITY_PRESET hidden
     VISIBILITY_INLINES_HIDDEN ON
@@ -109,13 +109,13 @@ if(WINACP_BUILD_TESTS)
     enable_testing()
 
     add_executable(test_winacp tests/test_winacp.cpp tests/check.h)
-    target_link_libraries(test_winacp PRIVATE winacp::winacp)
+    target_link_libraries(test_winacp PRIVATE ${PROJECT_NAME}::${PROJECT_NAME})
     add_test(NAME test_winacp COMMAND test_winacp)
 
     # Verification of the tables against the Windows API, which exists on Windows only.
     if(WIN32)
         add_executable(test_against_windows tests/test_against_windows.cpp tests/check.h)
-        target_link_libraries(test_against_windows PRIVATE winacp::winacp)
+        target_link_libraries(test_against_windows PRIVATE ${PROJECT_NAME}::${PROJECT_NAME})
         add_test(NAME test_against_windows COMMAND test_against_windows)
     endif()
 
@@ -137,7 +137,7 @@ endif()
 if(WINACP_INSTALL)
     include(CMakePackageConfigHelpers)
 
-    install(TARGETS winacp
+    install(TARGETS ${PROJECT_NAME}
         EXPORT winacpTargets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
