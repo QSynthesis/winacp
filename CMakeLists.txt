@@ -58,6 +58,11 @@ add_library(winacp
 )
 add_library(winacp::winacp ALIAS winacp)
 
+# Debug and Release builds may be installed to the same prefix. The postfix keeps the debug
+# library, which a Debug consumer must link because of _ITERATOR_DEBUG_LEVEL, from replacing
+# the release library of the same name.
+set_target_properties(winacp PROPERTIES DEBUG_POSTFIX d)
+
 generate_export_header(winacp
     EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/include/winacp/winacp_export.h
 )
