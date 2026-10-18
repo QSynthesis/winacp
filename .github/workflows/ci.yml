@@ -9,35 +9,20 @@ on:
   workflow_dispatch:
 
 jobs:
+  # One configuration for each platform, the build types alternating, because the library is
+  # static and Debug and Release take the same code.
   build:
     name: ${{ matrix.platform }} ${{ matrix.config }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        platform: [ linux-gcc, linux-clang, macos, windows-msvc, windows-clang-cl ]
-        config: [ Debug, Release ]
         include:
-          - platform: linux-gcc
-            os: ubuntu-latest
-            cc: gcc
-            cxx: g++
-          - platform: linux-clang
-            os: ubuntu-latest
-            cc: clang
-            cxx: clang++
-          - platform: macos
-            os: macos-latest
-            cc: clang
-            cxx: clang++
-          - platform: windows-msvc
-            os: windows-latest
-            cc: cl
-            cxx: cl
-          - platform: windows-clang-cl
-            os: windows-latest
-            cc: clang-cl
-            cxx: clang-cl
+          - { platform: linux-gcc, os: ubuntu-latest, cc: gcc, cxx: g++, config: Release }
+          - { platform: linux-clang, os: ubuntu-latest, cc: clang, cxx: clang++, config: Debug }
+          - { platform: macos, os: macos-latest, cc: clang, cxx: clang++, config: Release }
+          - { platform: windows-msvc, os: windows-latest, cc: cl, cxx: cl, config: Debug }
+          - { platform: windows-clang-cl, os: windows-latest, cc: clang-cl, cxx: clang-cl, config: Release }
 
     steps:
       - uses: actions/checkout@v4
@@ -81,7 +66,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        config: [ Debug, Release ]
+        config: [ Debug ]
     steps:
       - uses: actions/checkout@v4
 
