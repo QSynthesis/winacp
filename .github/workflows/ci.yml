@@ -1,0 +1,106 @@
+name: CI
+
+# Builds and runs the tests on a push to main and on manual dispatch, after the workflow of
+# stdcorelib. workflow_dispatch repeats a run without a push. On Windows the tests also compare
+# the tables with the conversions of the Windows API.
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.platform }} ${{ matrix.config }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ linux-gcc, linux-clang, macos, windows-msvc, windows-clang-cl ]
+        config: [ Debug, Release ]
+        include:
+          - platform: linux-gcc
+            os: ubuntu-latest
+            cc: gcc
+            cxx: g++
+          - platform: linux-clang
+            os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+          - platform: macos
+            os: macos-latest
+            cc: clang
+            cxx: clang++
+          - platform: windows-msvc
+            os: windows-latest
+            cc: cl
+            cxx: cl
+          - platform: windows-clang-cl
+            os: windows-latest
+            cc: clang-cl
+            cxx: clang-cl
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ninja
+        shell: bash
+        run: |
+          case "$RUNNER_OS" in
+            Linux) sudo apt-get update && sudo apt-get install -y ninja-build ;;
+            macOS) brew install ninja ;;
+            Windows) choco install ninja -y --no-progress ;;
+          esac
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+        with:
+          arch: x64
+
+      - name: Configure
+        shell: bash
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: |
+          cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} \
+            -DWINACP_BUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build
+
+      # --no-tests=error, because ctest succeeds if it finds no test.
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --no-tests=error
+
+  # MinGW with the LLVM toolchain of the CLANG64 environment of MSYS2: clang, lld, libc++ and the
+  # UCRT, as llvm-mingw, with which HelloUtau builds its MinGW variant. The MinGW headers differ
+  # from those of the Windows SDK, which the comparison with the Windows API includes.
+  mingw:
+    name: windows-mingw-clang ${{ matrix.config }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [ Debug, Release ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: CLANG64
+          update: false
+          install: >-
+            mingw-w64-clang-x86_64-clang
+            mingw-w64-clang-x86_64-cmake
+            mingw-w64-clang-x86_64-ninja
+
+      - name: Build
+        shell: msys2 {0}
+        run: |
+          cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} \
+            -DWINACP_BUILD_TESTS=ON
+          cmake --build build
+
+      - name: Test
+        shell: msys2 {0}
+        run: ctest --test-dir build --output-on-failure --no-tests=error
